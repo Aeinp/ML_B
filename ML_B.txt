@@ -1,0 +1,449 @@
+//Logistic
+
+import pandas as pd
+import random
+from sklearn.preprocessing import StandardScaler
+
+
+col_names=['x1','x2','res']
+ds=pd.read_csv('/content/sample_data/Student-University.csv',header=None,names=col_names)
+scaler=StandardScaler()
+scaler.fit(ds)
+test=ds.values.tolist()
+
+
+
+train=[]
+for i in range(80):
+    r=random.randrange(len(test))
+    train.append(test.pop(r))
+  
+print(len(train),len(test))
+
+print(train)
+
+
+
+
+import numpy as np
+b0=0.0
+b1=0.0
+b2=0.0
+alpha=0.001
+
+x1=[i[0] for i in train]
+x2=[i[1] for i in train]
+y_train=[i[2] for i in train]
+
+
+epoch=10000
+
+while(epoch>0):
+    for i in range(len(train)):
+        pred=1/(1+np.exp(-(b0+b1*x1[i]+b2*x2[i])))
+        print(np.ceil(pred),y_train[i])
+        b0=b0+alpha*(y_train[i]-pred)*pred*(1-pred)*1.0
+        b1=b1+alpha*(y_train[i]-pred)*pred*(1-pred)*x1[i]
+        b2=b2+alpha*(y_train[i]-pred)*pred*(1-pred)*x2[i]
+    epoch=epoch-1
+
+
+
+
+b0,b1,b2
+
+
+
+
+x3=[i[0] for i in test]
+x4=[i[1] for i in test]
+y_test=[i[2] for i in test]
+pred=[]
+for i in range(len(test)): 
+    pred1=1/(1+np.exp(-(b0+b1*x3[i]+b2*x4[i])))
+    pred1=np.ceil(pred1)
+    pred.append(pred1)
+    print(pred1,y_test[i])
+
+
+
+
+from sklearn.metrics import accuracy_score
+
+print(accuracy_score(y_test,pred))
+
+
+
+
+//Naive Bayes
+
+import pandas as pd
+import numpy as np
+data = pd.read_csv('/content/sample_data/covid.csv')
+
+
+
+data
+
+
+
+
+from sklearn import preprocessing
+le = preprocessing.LabelEncoder()
+pc_encoded=le.fit_transform(data['pc'].values)
+wbc_encoded=le.fit_transform(data['wbc'].values)
+mc_encoded=le.fit_transform(data['mc'].values)
+ast_encoded=le.fit_transform(data['ast'].values)
+bc_encoded=le.fit_transform(data['bc'].values)
+ldh_encoded=le.fit_transform(data['ldh'].values)
+Y=le.fit_transform(data['diagnosis'].values)
+
+
+
+
+
+X=np.array(list(zip(pc_encoded,wbc_encoded,mc_encoded,ast_encoded,bc_encoded,ldh_encoded)))
+print(X)
+print(Y)
+
+
+
+
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+model = MultinomialNB()
+
+
+
+
+
+from sklearn.model_selection import train_test_split
+X_train,X_test,Y_train,Y_test=train_test_split(X,Y)
+
+
+
+
+
+model.fit(X_train, Y_train)
+y_pred = model.predict(X_test)
+print("Accuracy:",accuracy_score(Y_test, y_pred))
+print("\nReport")
+print(classification_report(Y_test,y_pred))
+
+
+
+
+
+
+
+
+
+//PCA
+
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+X = pd.read_csv('/content/sample_data/iris.csv')
+X.head()
+
+
+
+
+
+X.describe()
+species =X.species
+species=species.tolist()
+
+
+
+
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X=scaler.fit_transform(X)
+
+
+
+
+X_corr = (1 / 150) * X.T.dot(X)
+
+
+
+
+
+u,s,v = np.linalg.svd(X_corr)
+eig_values, eig_vectors = s, u
+eig_values, eig_vectors
+
+
+
+
+
+np.linalg.eig(X_corr)
+
+
+
+
+
+total = sum(eig_values)
+variance_of_each_feature =(eig_values / np.sum(eig_values))*100
+print("variance of each feature-->",variance_of_each_feature)
+plt.figure(figsize=(8,4))
+plt.bar(range(5),variance_of_each_feature, alpha=0.6)
+plt.ylabel('Percentage of explained variance')
+plt.xlabel('Dimensions')
+
+
+
+
+
+
+pc1 = X.dot(eig_vectors[:,0])
+pc2 = X.dot(eig_vectors[:,1])
+
+
+
+
+
+def plot_scatter(pc1, pc2):
+    fig, ax = plt.subplots(figsize=(15, 8))
+    
+    species_unique = list(set(species))
+    species_colors = ["r","b","g"]
+    
+    for i, spec in enumerate(species):
+        plt.scatter(pc1[i], pc2[i], label = spec, s = 20, c=species_colors[species_unique.index(spec)])
+        ax.annotate(str(i+1), (pc1[i],pc2[i]))
+    
+    from collections import OrderedDict
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    plt.legend(by_label.values(), by_label.keys(), prop={'size': 15}, loc=4)
+    
+    ax.set_xlabel('Principal Component 1', fontsize = 15)
+    ax.set_ylabel('Principal Component 2', fontsize = 15)
+    ax.axhline(y=0, color="grey", linestyle="--")
+    ax.axvline(x=0, color="grey", linestyle="--")
+    
+    plt.grid()
+    plt.axis([-4, 4, -3, 3])
+    plt.show()
+    
+plot_scatter(pc1, pc2)
+
+
+
+
+//RandomForest
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+data = pd.read_csv('/content/sample_data/pima.csv')
+
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import make_classification
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+import pandas_profiling
+from matplotlib import rcParams
+import warnings
+
+
+
+
+warnings.filterwarnings("ignore")
+rcParams["figure.figsize"]=10,6
+np.random.seed(42)
+
+
+
+data.sample(5)
+
+
+
+
+data.columns
+
+
+
+
+X=data.drop("Outcome",axis=1)
+y=data["Outcome"]
+
+
+
+scaler=StandardScaler()
+X_scaled=scaler.fit_transform(X)
+
+
+
+
+X_train,X_test,Y_train,Y_test=train_test_split(X_scaled,y,stratify=y,test_size=0.10,random_state=42)
+
+
+
+
+
+classifier = RandomForestClassifier(n_estimators=100)
+classifier.fit(X_train,Y_train)
+
+
+
+
+y_pred = classifier.predict(X_test)
+
+
+
+print("Accuracy:",accuracy_score(Y_test,y_pred))
+
+
+
+feature_importances_df = pd.DataFrame(
+    {"feature":list(X.columns),"importance":classifier.feature_importances_}
+).sort_values("importance",ascending=False)
+
+feature_importances_df
+
+
+
+
+from sklearn.tree import DecisionTreeClassifier
+clf=DecisionTreeClassifier()
+clf.fit(X_train,Y_train)
+
+
+
+
+
+Y_pred = clf.predict(X_test)
+
+
+
+
+
+from sklearn.metrics import accuracy_score
+print("Accuracy-DecisionTree :",accuracy_score(Y_test,Y_pred))
+
+
+
+
+//SVM
+
+
+from sklearn.svm import SVC
+from sklearn import svm
+import numpy as np
+X=np.array([[3,4],[1,4],[2,3],[6,-1],[7,-1],[5,-3]])
+y=np.array([-1,-1,-1,1,1,1])
+l=SVC(C=1e5,kernel='linear')
+l.fit(X,y)
+print('w= ',l.coef_)
+print('b= ',l.intercept_)
+print('Indices of support vectors= ',l.support_)
+print('Support vectors= ',l.support_vectors_)
+print('No. of support vectors fro each class= ',l.n_support_)
+print('coefficient of support vectors in decision function= ',np.abs(l.dual_coef_))
+
+
+
+
+
+import pandas as pd
+data=pd.read_csv('/content/sample_data/glass.csv')
+data.head()
+
+
+
+
+
+x=data.drop('Type',axis=1)
+y=data.Type
+
+
+
+from sklearn.model_selection import train_test_split
+x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.3)
+
+
+
+
+linear=svm.SVC(kernel='linear')
+linear.fit(x_train,y_train)
+
+
+
+
+print(linear.support_vectors_)
+
+
+
+print(linear.n_support_)
+
+
+
+
+y_pred=linear.predict(x_test)
+
+
+
+
+from sklearn.metrics import accuracy_score
+print(accuracy_score(y_test,y_pred))
+
+
+
+
+from sklearn.metrics import confusion_matrix
+print(confusion_matrix(y_test,y_pred))
+
+
+
+
+
+from sklearn.metrics import classification_report
+print(classification_report(y_test,y_pred))
+
+
+
+
+
+#with different kernels
+model1=SVC(kernel='sigmoid')
+model2=SVC(kernel='poly')
+model3=SVC(kernel='rbf')
+
+
+
+model1.fit(x_train,y_train)
+model2.fit(x_train,y_train)
+model3.fit(x_train,y_train)
+
+
+
+
+y_pred1=model1.predict(x_test)
+y_pred2=model2.predict(x_test)
+y_pred3=model3.predict(x_test)
+
+
+
+
+print("prediction by model1 ",accuracy_score(y_test,y_pred1))
+print("prediction by model2",accuracy_score(y_test,y_pred2))
+print("prediction by model3",accuracy_score(y_test,y_pred1))
+
+
+
+
+
+
+
+
+
